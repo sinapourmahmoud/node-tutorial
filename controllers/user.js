@@ -1,76 +1,91 @@
 let { users } = require("../models/users");
 
-function get_all_users(req, res) {
-  res.status(200).send(JSON.stringify(users));
-}
+const { PrismaClient } = require("@prisma/client");
 
-function get_user(req, res) {
-  const id = parseInt(req.params.id);
-  const user = users.filter((user) => user.id == id);
-  if (user.length == 0) {
-    return res.status(404).send("user not found");
-  } else {
-    return res.status(200).send(JSON.stringify(user));
-  }
-}
+const prisma = new PrismaClient();
 
-function login(req, res) {
-  const { username, password } = req.query;
-  const found_user = users.filter(
-    (item) => item.password == password && item.name == username
-  );
-  if (found_user.length != 0) {
-    return res
-      .status(200)
-      .send(`this is our user ${JSON.stringify(found_user)}`);
-  }
+// async function get_all_users(req, res) {
+//   result = await prisma.user.findMany({
+//     select: {
+//       name: true,
+//       job: true,
+//       password: true,
+//     },
+//   });
+//   res.status(200).send(JSON.stringify(result));
+// }
 
-  return res.status(404).send("user not found");
-}
+// async function get_user(req, res) {
+//   const username = req.params.name;
+//   const result = await prisma.user.findFirst({
+//     where: {
+//       name: username,
+//     },
+//   });
 
-function signup(req, res) {
-  const name = req.body.name;
-  const lastname = req.body.lastname;
-  const password = req.body.password;
-  let higest = 0;
-  for (const user in users) {
-    if (user.id >= higest) {
-      higest = user.id;
-    }
-    if (user.name == name) {
-      return res.status(400).send("the user is already registered");
-    }
-  }
-  users.push({ id: higest + 1, name, lastname, password });
+//   return res.status(200).send(JSON.stringify(result));
+// }
+
+// async function login(req, res) {
+//   const { username, password } = req.body;
+//   // const found_user = users.filter(
+//   //   (item) => item.password == password && item.name == username
+//   // );
+//   // if (found_user.length != 0) {
+//   //   return res
+//   //     .status(200)
+//   //     .send(`this is our user ${JSON.stringify(found_user)}`);
+//   // }
+//   result = await prisma.user.findFirst({
+//     where: {
+//       name: username,
+//       password: password,
+//     },
+//     select: {
+//       name: true,
+//       password: true,
+//     },
+//   });
+//   console.log(result);
+//   if (result) {
+//     return res.status(200).send(JSON.stringify(result));
+//   }
+//   return res.status(200).send("user not found");
+// }
+
+async function signup(req, res) {
+  const { name, job, password } = req.body;
+
+  await prisma.user.create({
+    data: {
+      name,
+      password,
+      job,
+    },
+  });
   return res
     .status(200)
-    .send(
-      `user is signed up! the name is ${name} and your password is ${password}`
-    );
+    .send(`user is signed up! the name is and your password is `);
 }
-function edit_user(req, res) {
-  const id = parseInt(req.params.id);
-  const { name, lastname, password } = req.body;
-  function my_func(item) {
-    if (item.id == id) {
-      return { id, name, lastname, password };
-    }
-    return item;
-  }
-  users = users.map(my_func);
-  return res
-    .status(200)
-    .send(
-      `changing was successful ${JSON.stringify({ name, lastname, password })}`
-    );
-}
-
-
+// async function edit_user(req, res) {
+//   const name = req.body.name;
+//   const password = req.body.password;
+//   result = await prisma.user.update({
+//     where: {
+//       name,
+//     },
+//     data: {
+//       ...data,
+//       password,
+//     },
+//   });
+//   return res.status(200).send(JSON.stringify(resault));
+// }
 
 module.exports = {
   signup,
   login,
   edit_user,
   get_all_users,
-  get_user
+  get_user,
 };
